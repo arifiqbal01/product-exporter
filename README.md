@@ -4,7 +4,8 @@ A small Python utility for exporting public Shopify product data from a store’
 
 ## Features
 - Fetches products from a Shopify storefront JSON endpoint
-- Handles pagination
+- Supports configurable store URL, output file, page range, limit, and delay
+- Handles pagination automatically
 - Extracts product, variant, and image data
 - Exports results into a CSV format suitable for Shopify workflows
 
@@ -12,5 +13,7 @@ A small Python utility for exporting public Shopify product data from a store’
 Python · Requests · CSV
 
 ## Run
+
+### Scrape one page
 ```bash
-python src/main.py
+python src/main.py --store https://www.exportleftovers.com --end-page 1

@@ -38,7 +38,7 @@ class ShopifyProductExporter:
     def __init__(
         self,
         store_url: str,
-        output_csv: str = "output/shopify_import.csv",
+        output_csv: str = "output/shopify_products.csv",
         start_page: int = 1,
         end_page: int | None = None,
         limit: int = 25,
@@ -135,13 +135,14 @@ class ShopifyProductExporter:
                     "Variant Tax Code": "",
                     "Cost per item": "",
                 }
-
                 rows.append(row)
 
         return rows
 
-    def scrape_all_products(self) -> List[Dict[str, Any]]:
+    def scrape_all_products(self) -> tuple[List[Dict[str, Any]], int, int]:
         all_rows: List[Dict[str, Any]] = []
+        total_products = 0
+        processed_pages = 0
         page = self.start_page
 
         while True:
@@ -160,12 +161,14 @@ class ShopifyProductExporter:
 
             rows = self.transform_products_to_rows(products)
             all_rows.extend(rows)
+            total_products += len(products)
+            processed_pages += 1
 
             print(f"Processed page {page}: {len(products)} products, {len(rows)} rows")
             page += 1
             time.sleep(self.delay)
 
-        return all_rows
+        return all_rows, total_products, processed_pages
 
     def save_to_csv(self, rows: List[Dict[str, Any]]) -> None:
         output_path = Path(self.output_csv)
@@ -179,5 +182,11 @@ class ShopifyProductExporter:
         print(f"Saved {len(rows)} rows to {output_path}")
 
     def run(self) -> None:
-        rows = self.scrape_all_products()
+        rows, total_products, processed_pages = self.scrape_all_products()
         self.save_to_csv(rows)
+
+        print("\nExport complete")
+        print(f"Pages processed: {processed_pages}")
+        print(f"Products fetched: {total_products}")
+        print(f"Rows exported: {len(rows)}")
+        print(f"CSV saved to: {self.output_csv}")
