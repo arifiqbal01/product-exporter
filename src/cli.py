@@ -4,6 +4,37 @@ from src.exporters import EXPORTERS
 from src.services.pipeline import ExportPipeline
 
 
+def parse_cookies(cookie_string: str) -> dict[str, str]:
+    """
+    Convert a browser cookie string into a dictionary.
+
+    Example:
+        "sid=abc; session=xyz"
+
+    becomes
+
+        {
+            "sid": "abc",
+            "session": "xyz",
+        }
+    """
+    cookies = {}
+
+    if not cookie_string:
+        return cookies
+
+    for cookie in cookie_string.split(";"):
+        cookie = cookie.strip()
+
+        if "=" not in cookie:
+            continue
+
+        key, value = cookie.split("=", 1)
+        cookies[key.strip()] = value.strip()
+
+    return cookies
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Export products from supported e-commerce platforms."
@@ -56,7 +87,50 @@ def parse_args():
         help="Delay between requests in seconds.",
     )
 
-    return parser.parse_args()
+    # Wix B2B options
+    parser.add_argument(
+        "--authorization",
+        default=None,
+        help="Authorization token (required for Wix B2B).",
+    )
+
+    parser.add_argument(
+        "--xsrf-token",
+        default=None,
+        help="XSRF token (required for Wix B2B).",
+    )
+
+    parser.add_argument(
+        "--cookies",
+        type=parse_cookies,
+        default={},
+        help=(
+            "Browser cookies as a semicolon-separated string. "
+            "Example: 'sid=abc; session=xyz'"
+        ),
+    )
+
+    parser.add_argument(
+        "--linguist",
+        default=None,
+        help="Optional x-wix-linguist header.",
+    )
+
+    args = parser.parse_args()
+
+    # Platform-specific validation
+    if args.platform == "wix":
+        if not args.authorization:
+            parser.error(
+                "--authorization is required when --platform wix"
+            )
+
+        if not args.xsrf_token:
+            parser.error(
+                "--xsrf-token is required when --platform wix"
+            )
+
+    return args
 
 
 def run() -> None:

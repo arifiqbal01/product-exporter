@@ -1,5 +1,7 @@
 from src.exporters.shopify import ShopifyExporter
+from src.exporters.wix_b2b import WixB2BExporter
 
 EXPORTERS = {
     "shopify": ShopifyExporter,
+    "wix_b2b": WixB2BExporter,
 }

@@ -1,8 +1,9 @@
-import time
 from datetime import datetime
 from pathlib import Path
+import time
 from urllib.parse import urlparse
 
+from src.configs import ShopifyConfig, WixConfig
 from src.constants import CSV_FIELDS
 from src.exporters import EXPORTERS
 from src.transformers import PRODUCT_TRANSFORMERS
@@ -18,6 +19,7 @@ class ExportPipeline:
     def run(self):
 
         exporter = self._build_exporter()
+        transformer = PRODUCT_TRANSFORMERS[self.args.platform]()
 
         page = self.args.start_page
 
@@ -37,9 +39,7 @@ class ExportPipeline:
             if not raw_products:
                 break
 
-            products = PRODUCT_TRANSFORMERS[
-                self.args.platform
-            ].transform(raw_products)
+            products = transformer.transform_many(raw_products)
 
             rows = ShopifyCSVTransformer.transform(products)
 
@@ -67,10 +67,29 @@ class ExportPipeline:
 
     def _build_exporter(self):
         exporter_cls = EXPORTERS[self.args.platform]
+        config = self._build_config()
 
-        return exporter_cls(
-            store_url=self.args.store,
-            limit=self.args.limit,
+        return exporter_cls(config)
+
+    def _build_config(self):
+
+        if self.args.platform == "shopify":
+            return ShopifyConfig(
+                store_url=self.args.store,
+                limit=self.args.limit,
+            )
+
+        if self.args.platform == "wix_b2b":
+            return WixConfig(
+                store_url=self.args.store,
+                authorization=self.args.authorization,
+                xsrf_token=self.args.xsrf_token,
+                limit=self.args.limit,
+                linguist=self.args.linguist,
+            )
+
+        raise ValueError(
+            f"Unsupported platform: {self.args.platform}"
         )
 
     def _build_output_path(self) -> str:
@@ -81,7 +100,6 @@ class ExportPipeline:
         output/wix/littlebrands_20260630_101215.csv
         """
 
-        # User supplied an output file
         if self.args.output:
             return self.args.output
 

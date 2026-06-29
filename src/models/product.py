@@ -1,3 +1,4 @@
+# src/models/product.py
 from dataclasses import dataclass, field
 
 

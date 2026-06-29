@@ -2,24 +2,20 @@ from typing import Any
 
 import requests
 
+from src.configs import ShopifyConfig
 from src.exporters.base import BaseExporter
 
 
 class ShopifyExporter(BaseExporter):
     """Fetches raw product data from a public Shopify store."""
 
-    def __init__(
-        self,
-        store_url: str,
-        limit: int = 250,
-    ):
-        self.store_url = store_url.rstrip("/")
-        self.limit = limit
+    def __init__(self, config: ShopifyConfig):
+        self.config = config
 
     def fetch_page(self, page: int) -> list[dict[str, Any]]:
         url = (
-            f"{self.store_url}/products.json"
-            f"?limit={self.limit}&page={page}"
+            f"{self.config.store_url.rstrip('/')}/products.json"
+            f"?limit={self.config.limit}&page={page}"
         )
 
         print(f"Fetching page {page}")

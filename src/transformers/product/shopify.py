@@ -1,17 +1,14 @@
 from typing import Any
 
-from src.models.product import Product, Variant, Image
+from src.models.product import Image, Product, Variant
+
+from .base import BaseProductTransformer
 
 
-class ShopifyTransformer:
+class ShopifyTransformer(BaseProductTransformer):
     """Transforms raw Shopify products into normalized Product models."""
 
-    @staticmethod
-    def transform(products: list[dict[str, Any]]) -> list[Product]:
-        return [ShopifyTransformer.transform_product(product) for product in products]
-
-    @staticmethod
-    def transform_product(product: dict[str, Any]) -> Product:
+    def transform(self, product: dict[str, Any]) -> Product:
         options = product.get("options", [])
 
         images = [
@@ -23,7 +20,7 @@ class ShopifyTransformer:
         ]
 
         variants = [
-            ShopifyTransformer.transform_variant(variant)
+            self.transform_variant(variant)
             for variant in product.get("variants", [])
         ]
 
