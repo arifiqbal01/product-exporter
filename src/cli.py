@@ -119,7 +119,7 @@ def parse_args():
     args = parser.parse_args()
 
     # Platform-specific validation
-    if args.platform == "wix":
+    if args.platform == "wix_b2b":
         if not args.authorization:
             parser.error(
                 "--authorization is required when --platform wix"

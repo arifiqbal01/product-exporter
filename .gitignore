@@ -1,6 +1,16 @@
+# Virtual environment
 .venv/
+
+# IDE
 .idea/
+
+# Python
 __pycache__/
-*.pyc
-output/*.csv
+*.py[cod]
+
+# Environment variables
 .env
+
+# Generated exports
+output/*
+!output/.gitkeep
