@@ -76,8 +76,8 @@ def parse_args():
     parser.add_argument(
         "--limit",
         type=int,
-        default=250,
-        help="Products per request.",
+        default=None,
+        help="Products per request. Uses the platform default if omitted.",
     )
 
     parser.add_argument(

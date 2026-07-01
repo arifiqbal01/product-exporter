@@ -1,3 +1,4 @@
+# src/configs/shopify.py
 from dataclasses import dataclass
 
 

@@ -1,9 +1,10 @@
+# src/services/pipeline.py
 from datetime import datetime
 from pathlib import Path
 import time
 from urllib.parse import urlparse
 
-from src.configs import ShopifyConfig, WixConfig
+from src.configs import ShopifyConfig, WixConfig, WooCommerceConfig
 from src.constants import CSV_FIELDS
 from src.exporters import EXPORTERS
 from src.transformers import PRODUCT_TRANSFORMERS
@@ -76,7 +77,13 @@ class ExportPipeline:
         if self.args.platform == "shopify":
             return ShopifyConfig(
                 store_url=self.args.store,
-                limit=self.args.limit,
+                limit=self.args.limit or 250,
+            )
+
+        if self.args.platform == "woocommerce":
+            return WooCommerceConfig(
+                store_url=self.args.store,
+                limit=self.args.limit or 100,
             )
 
         if self.args.platform == "wix_b2b":
@@ -84,8 +91,8 @@ class ExportPipeline:
                 store_url=self.args.store,
                 authorization=self.args.authorization,
                 xsrf_token=self.args.xsrf_token,
-                limit=self.args.limit,
                 linguist=self.args.linguist,
+                limit=self.args.limit or 100,
             )
 
         raise ValueError(
