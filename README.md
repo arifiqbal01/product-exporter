@@ -6,9 +6,12 @@ Originally built as a personal migration tool and now open sourced for anyone ne
 
 ## Features
 
-- Multi-platform architecture
-- Shopify storefront exporter
-- Wix B2B exporter
+- Multi-platform ETL architecture
+- Shopify REST API exporter
+- Wix B2B GraphQL exporter
+- WooCommerce Store API exporter
+- Odoo public storefront exporter
+- PrestaShop public storefront exporter
 - Automatic pagination
 - Shopify-compatible CSV output
 - Product descriptions
@@ -16,44 +19,57 @@ Originally built as a personal migration tool and now open sourced for anyone ne
 - Multiple product images
 - Inventory
 - Product options
-- Extensible ETL architecture
+- Extensible architecture for adding new platforms
 
 ## Supported Platforms
 
-| Platform | Status |
-|----------|--------|
-| Shopify | ✅ |
-| Wix B2B | ✅ |
+| Platform | Method | Status |
+|----------|--------|--------|
+| Shopify | REST API | ✅ |
+| Wix B2B | GraphQL | ✅ |
+| WooCommerce | Store API | ✅ |
+| Odoo | Public HTML | ✅ |
+| PrestaShop | Public HTML | ✅ |
 
 ## Architecture
 
 ```
-Extract
+Platform
     ↓
-Normalize
+Exporter
     ↓
-Transform
+Raw Dictionary
     ↓
-Export
-```
-
-```
-CLI
+Transformer
     ↓
-Pipeline
-    ↓
-Platform Exporter
-    ↓
-Raw Platform Data
-    ↓
-Platform Transformer
-    ↓
-Normalized Product Model
+Product Model
     ↓
 Output Transformer
     ↓
 CSV Writer
 ```
+
+### ETL Responsibilities
+
+**Exporter**
+
+- HTTP requests
+- API communication
+- HTML scraping
+- Pagination
+- Authentication (when required)
+- Returns normalized raw dictionaries
+
+**Transformer**
+
+- Converts raw dictionaries into the common `Product` model
+- No HTTP requests
+- No HTML parsing
+
+**Writer**
+
+- Generates Shopify-compatible CSV files
+- Platform independent
 
 ## Project Structure
 
@@ -76,6 +92,7 @@ src/
 
 - Python 3.11+
 - requests
+- beautifulsoup4
 
 Install dependencies:
 
@@ -87,23 +104,43 @@ pip install -r requirements.txt
 
 ### Shopify
 
-Export every product:
-
 ```bash
 python -m src.main \
     --platform shopify \
     --store https://example.myshopify.com
 ```
 
-Export a page range:
+---
+
+### WooCommerce
 
 ```bash
 python -m src.main \
-    --platform shopify \
-    --store https://example.myshopify.com \
-    --start-page 1 \
-    --end-page 5
+    --platform woocommerce \
+    --store https://example.com
 ```
+
+---
+
+### Odoo (Public Storefront)
+
+```bash
+python -m src.main \
+    --platform odoo_public \
+    --store https://example.com
+```
+
+---
+
+### PrestaShop (Public Storefront)
+
+```bash
+python -m src.main \
+    --platform prestashop_public \
+    --store https://example.com/category
+```
+
+> **Note:** The current public exporter starts from category pages. Automatic category discovery will be added in a future release.
 
 ---
 
@@ -113,13 +150,13 @@ The exporter uses the same GraphQL API as the Wix B2B storefront.
 
 Before exporting, obtain the required authentication headers from your browser.
 
-#### Step 1 — Sign in
+#### 1. Sign in
 
 Log in to the Wix B2B storefront.
 
-#### Step 2 — Open Developer Tools
+#### 2. Open Developer Tools
 
-Open your browser's Developer Tools.
+Open:
 
 ```
 F12
@@ -131,24 +168,17 @@ Go to:
 Network
 ```
 
-#### Step 3 — Find the storefront GraphQL requests
+#### 3. Find GraphQL requests
 
-In the Network search box, search for:
+Search for:
 
 ```
 ecommerce-storefront-web
 ```
 
-#### Step 4 — Trigger the product list request
+#### 4. Trigger the product listing request
 
-Apply any filter or sorting option on the product listing page.
-
-This generates the GraphQL request:
-
-```
-operationName:
-getFilteredProducts
-```
+Apply any filter or sorting option.
 
 Copy these request headers:
 
@@ -156,30 +186,7 @@ Copy these request headers:
 - x-xsrf-token
 - x-wix-linguist
 
-#### Step 5 — Verify the product detail request
-
-Open any product from the listing.
-
-A second GraphQL request will be made.
-
-Open its **Payload** tab and verify:
-
-```
-operationName:
-getProductBySlug
-```
-
-The exporter uses this endpoint to retrieve:
-
-- Product description
-- Images
-- Variants
-- Product options
-- Inventory
-- Brand
-- Additional information
-
-#### Step 6 — Run the exporter
+#### 5. Run the exporter
 
 ```bash
 python -m src.main \
@@ -202,6 +209,7 @@ Exports Shopify-compatible CSV files containing:
 - Tags
 - Variants
 - SKU
+- Barcode
 - Prices
 - Compare-at prices
 - Inventory
@@ -210,23 +218,26 @@ Exports Shopify-compatible CSV files containing:
 
 ## Design Principles
 
+- ETL architecture
 - Separation of extraction and transformation
-- Platform-specific logic remains isolated
-- Common normalized product model
-- Reusable output transformers
+- Platform-specific logic isolated inside exporters
+- Shared normalized `Product` model
+- Platform-independent output writers
 - Easy to extend with new platforms
 
 ## Future Platforms
 
-The architecture was designed so additional exporters can be added with minimal effort.
+The architecture is designed so additional exporters can be added with minimal effort.
 
 Potential additions include:
 
-- WooCommerce
 - Magento
 - BigCommerce
 - Squarespace
 - Ecwid
+- OpenCart
+- Big Cartel
+- Shift4Shop
 
 ## License
 
