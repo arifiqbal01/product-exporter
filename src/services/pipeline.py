@@ -4,7 +4,13 @@ from pathlib import Path
 import time
 from urllib.parse import urlparse
 
-from src.configs import ShopifyConfig, WixConfig, WooCommerceConfig
+from src.configs import (
+    ShopifyConfig,
+    WixConfig,
+    WooCommerceConfig,
+    OdooPublicConfig,
+    PrestashopPublicConfig
+)
 from src.constants import CSV_FIELDS
 from src.exporters import EXPORTERS
 from src.transformers import PRODUCT_TRANSFORMERS
@@ -93,6 +99,16 @@ class ExportPipeline:
                 xsrf_token=self.args.xsrf_token,
                 linguist=self.args.linguist,
                 limit=self.args.limit or 100,
+            )
+
+        if self.args.platform == "odoo_public":
+            return OdooPublicConfig(
+                store_url=self.args.store,
+            )
+
+        if self.args.platform == "prestashop_public":
+            return PrestashopPublicConfig(
+                store_url=self.args.store,
             )
 
         raise ValueError(
